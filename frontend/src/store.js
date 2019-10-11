@@ -5,12 +5,16 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-
+    roomID: null,
+    username: null,
   },
   mutations: {
-
   },
   actions: {
 
+  },
+  getters: {
+    roomID: state => state.roomID,
+    username: state => state.user,
   },
 });
