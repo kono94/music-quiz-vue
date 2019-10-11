@@ -1,86 +1,79 @@
 import SockJS from 'sockjs-client';
 import Stomp from 'webstomp-client';
+import * as SocketRoutes from './socket-routes';
 
-export default class GameSocket extends EventTarget {
-  constructor(store) {
-    super();
+class GameSocket {
+  constructor() {
     this.socket = null;
-    this.store = store;
+    this.uri = 'http://localhost:8081/';
   }
 
-  async connectToSocket(uri) {
+  async connectToSocket(store) {
     console.warn('Connect to socket...');
-
     if (this.socket && this.socket.readyState === this.socket.OPEN) {
       console.warn('Reuse existing socket!');
       return;
     }
 
+    this.store = store;
     console.warn('Creating new connectionInfo!');
-    const sock = new SockJS(uri);
+    const sock = new SockJS(this.uri);
     this.socket = Stomp.over(sock);
-    this.socket.connect();
-    this.socket.addEventListener('open', e => this.dispatchEvent(new CustomEvent('open', e)));
-
-    this.socket.addEventListener('message', e => this.dispatchEvent(new CustomEvent('message', {
-      detail: JSON.parse(e.data),
-    })));
-    this.socket.addEventListener('error', e => this.dispatchEvent(new CustomEvent('error', e)));
-    this.socket.addEventListener('close', e => this.dispatchEvent(new CustomEvent('close', e)));
+    await new Promise(((resolve, reject) => this.socket.connect({}, resolve, reject)));
+    await this.changeUserName(this.store.getters.username);
   }
 
   isOpen() {
-    return this.socket.readyState === this.socket.OPEN;
+    console.log(this.socket)
+    return this.socket !== null && this.socket.connected;
   }
 
   closeSocket() {
     this.socket.close();
   }
 
-  async registerUser() {
-    await this.socket.send(JSON.stringify({
-      type: 'REGISTER_AS_PLAYER',
-      userAction: {
-        userName: this.store.getters.userName,
-        data: {
-          paddleColor: this.store.getters.userColor,
-        },
-      },
-    }));
+  send(route, content) {
+    this.socket.send(route, JSON.stringify(content), {});
   }
 
-  async sendReadyState(ready, config) {
-    await this.socket.send(JSON.stringify({
-      type: 'SET_READY_STATE',
-      userAction: {
-        data: {
-          ready,
-          ...config,
-        },
-      },
-    }));
+  setReadyState(state) {
+    this.send(SocketRoutes.SET_READY_STATE, state);
   }
 
-  async fetchGameState() {
-    await this.socket.send(JSON.stringify({ type: 'GET_GAME_STATE' }));
+  joinRoom() {
+    this.send(SocketRoutes.JOIN_ROOM, {
+      roomID: this.store.getters.roomID,
+    });
   }
 
-  async fetchUserList() {
-    await this.socket.send(JSON.stringify({ type: 'GET_LOBBY_INFO' }));
+  leaveRoom() {
+    this.send(SocketRoutes.LEAVE_ROOM, {
+      roomID: this.store.getters.roomID,
+    });
   }
 
-  async setUserAction(userAction) {
-    await this.socket.send(JSON.stringify({ type: 'SET_PADDLE_ACTION', userAction }));
+  guessSong(artistGuess, songGuess) {
+    this.send(SocketRoutes.GUESS_SONG, {
+      artistGuess,
+      songGuess,
+    });
   }
 
-  async sendCustomPaddle(paddleCoords) {
-    await this.socket.send(JSON.stringify({
-      type: 'SET_CUSTOM_PADDLE',
-      userAction: {
-        data: {
-          coords: paddleCoords,
-        },
-      },
-    }));
+  requestLobbyData() {
+    this.send(SocketRoutes.REQUEST_LOBBY_LIST_UPDATE, {});
+  }
+
+  changeUserName(username) {
+    this.send(SocketRoutes.CHANGE_USERNAME, {
+      username,
+    });
+  }
+
+  subscribe(route, fn) {
+    this.socket.subscribe(route, (message) => {
+      fn(JSON.parse(message.body));
+    });
   }
 }
+const gameSocket = new GameSocket();
+export default gameSocket;

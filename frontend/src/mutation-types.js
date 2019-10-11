@@ -1,2 +1,2 @@
-export const CONNECT_TO_GAMESOCKET = 'connect-to-game-socket';
-export const DISCONNECT_FROM_GAMESOCKET = 'disconnect-from-game-socket';
+export const SET_USERNAME = 'set-username';
+export const SET_ROOM_ID = 'set-room-id';
