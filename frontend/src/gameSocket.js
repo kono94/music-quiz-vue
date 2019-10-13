@@ -1,55 +1,81 @@
-import SockJS from 'sockjs-client';
-import Stomp from 'webstomp-client';
-import * as SocketRoutes from './socket-routes';
+import * as SocketRoutes from './events';
+import { SET_ROOM, SET_SOCKET_STATE } from './mutation-types';
 
 class GameSocket {
   constructor() {
     this.socket = null;
-    this.uri = 'http://localhost:8081/';
+    this.uri = 'ws://localhost:8081/';
   }
 
   async connectToSocket(store) {
-    console.warn('Connect to socket...');
+    console.log('Connect to socket...');
     if (this.socket && this.socket.readyState === this.socket.OPEN) {
-      console.warn('Reuse existing socket!');
+      console.log('Reuse existing socket!');
       return;
     }
-
     this.store = store;
-    console.warn('Creating new connectionInfo!');
-    const sock = new SockJS(this.uri);
-    this.socket = Stomp.over(sock);
-    await new Promise(((resolve, reject) => this.socket.connect({}, resolve, reject)));
+    console.log('Creating new connectionInfo!');
+
+    await new Promise(((resolve, reject) => {
+      this.socket = new WebSocket(this.uri);
+
+      this.socket.onopen = () => {
+        console.log('webSocket opened');
+        this.store.commit(SET_SOCKET_STATE, {
+          isConnected: true,
+        });
+        resolve();
+      };
+
+      this.socket.onclose = () => {
+        console.log('webSocket closed');
+        this.store.commit(SET_SOCKET_STATE, {
+          isConnected: false,
+        });
+      };
+
+      this.socket.onerror = (error) => {
+        reject(error);
+      };
+
+      this.socket.addEventListener('message', (event) => {
+        const msg = JSON.parse(event.data);
+        console.log(msg);
+        switch (msg.event) {
+          case SocketRoutes.REFRESH_ROOM:
+            this.store.commit(SET_ROOM, msg.payload);
+        }
+      });
+    }));
+
+
     await this.changeUserName(this.store.getters.username);
   }
 
-  isOpen() {
-    console.log(this.socket)
-    return this.socket !== null && this.socket.connected;
-  }
-
-  closeSocket() {
-    this.socket.close();
-  }
-
   send(route, content) {
-    this.socket.send(route, JSON.stringify(content), {});
+    console.log(JSON.stringify({
+      event: route,
+      payload: content,
+    }));
+
+    this.socket.send(JSON.stringify({
+      event: route,
+      payload: JSON.stringify(content),
+    }));
   }
 
   setReadyState(state) {
     this.send(SocketRoutes.SET_READY_STATE, state);
   }
 
-  joinRoom() {
+  joinRoom(roomID) {
     this.send(SocketRoutes.JOIN_ROOM, {
-      roomID: this.store.getters.roomID,
+      roomID,
     });
   }
 
   leaveRoom() {
-    this.send(SocketRoutes.LEAVE_ROOM, {
-      roomID: this.store.getters.roomID,
-    });
+    this.send(SocketRoutes.LEAVE_ROOM, {});
   }
 
   guessSong(artistGuess, songGuess) {
@@ -69,10 +95,12 @@ class GameSocket {
     });
   }
 
-  subscribe(route, fn) {
-    this.socket.subscribe(route, (message) => {
-      fn(JSON.parse(message.body));
-    });
+  addEventListener(type, fn) {
+    this.socket.addEventListener(type, fn);
+  }
+
+  removeEventListener(type, fn) {
+    this.socket.removeEventListener(type, fn);
   }
 }
 const gameSocket = new GameSocket();

@@ -1,24 +1,18 @@
 package net.lwenstrom.musicquizbackend.config;
 
+import net.lwenstrom.musicquizbackend.MyWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
-@EnableScheduling
-@EnableWebSocketMessageBroker
-public class WebSocketConfig  implements WebSocketMessageBrokerConfigurer {
+@EnableWebSocket
+public class WebSocketConfig  implements WebSocketConfigurer {
 
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/").setAllowedOrigins("*").withSockJS();
-    }
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
+        MyWebSocketHandler webSocketHandler = new MyWebSocketHandler();
+        webSocketHandlerRegistry.addHandler(webSocketHandler, "/")
+                .setAllowedOrigins("*");
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/music");
     }
 }

@@ -2,16 +2,16 @@
   <div>
     Lobbies
     <ul>
-      <li v-for="(roomID, index) in Object.keys(rooms)"
+      <li v-for="(room, index) in rooms"
       :key="index">
-        ID: {{roomID}}
+        ID: {{room.id}} in-game: {{room.running}}
       </li>
     </ul>
   </div>
 </template>
 <script>
 import gameSocket from '../gameSocket';
-import * as SocketRoutes from '../socket-routes';
+import * as Events from '../events';
 
 export default {
   name: 'lobbyList',
@@ -27,15 +27,21 @@ export default {
   },
   mounted() {
     gameSocket.requestLobbyData();
-    gameSocket.subscribe(SocketRoutes.REFRESH_LOBBY_LIST, this.refreshLobbyList);
+    gameSocket.addEventListener('message', this.messageListener);
   },
   methods: {
-    refreshLobbyList(data) {
-      console.log(data)
-      this.rooms = data;
+    messageListener(event) {
+      const msg = JSON.parse(event.data);
+      switch (msg.event) {
+        case Events.REFRESH_LOBBY_LIST:
+          this.rooms = msg.payload;
+          break;
+      }
     },
   },
-
+  beforeDestroy() {
+    gameSocket.socket.removeEventListener('message', this.messageListener);
+  },
 };
 
 </script>
