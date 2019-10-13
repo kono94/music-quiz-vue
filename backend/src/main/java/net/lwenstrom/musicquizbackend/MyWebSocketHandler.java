@@ -16,13 +16,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MyWebSocketHandler.class);
-    private Map<String, GameRoom> rooms = new HashMap<>();
-    private Map<WebSocketSession, Player> sessionToPlayer = new HashMap<>();
+    private Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
+    private Map<WebSocketSession, Player> sessionToPlayer = new ConcurrentHashMap<>();
 
     public MyWebSocketHandler() {
         for(int i = 0; i<5; ++i){
@@ -36,6 +37,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         System.out.println("new connection");
         Player player = new Player();
         player.setUsername("noName");
+        player.setSessionID(session.getId());
         sessionToPlayer.put(session, player);
     }
 
@@ -43,7 +45,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         System.out.println(message.getPayload());
         MessageWrapper messageWrapper = parseMessage(message, MessageWrapper.class);
-
+        String roomID;
         switch (messageWrapper.getEvent()) {
             case CHANGE_USERNAME:
                 ChangeUsernamePayload cm = parsePayload(messageWrapper, ChangeUsernamePayload.class);
@@ -51,9 +53,19 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                     sessionToPlayer.get(session).setUsername(cm.getUsername());
                 }
                 send(session, Event.REFRESH_PLAYER, sessionToPlayer.get(session));
-
+                break;
+            case TOGGLE_READY:
+                roomID = sessionToPlayer.get(session).getRoomID();
+                if(roomID != null){
+                    sessionToPlayer.get(session).setReady(!sessionToPlayer.get(session).isReady());
+                    rooms.get(roomID).refreshRoomForAllPlayers();
+                }
+                break;
             case REQUEST_ROOM_UPDATE:
-                send(session, Event.REFRESH_ROOM, rooms.get(sessionToPlayer.get(session).getRoomID()));
+                roomID = sessionToPlayer.get(session).getRoomID();
+                if(roomID != null){
+                    send(session, Event.REFRESH_ROOM, rooms.get(roomID));
+                }
                 break;
             case REQUEST_LOBBY_LIST_UPDATE:
                 send(session, Event.REFRESH_LOBBY_LIST, rooms.values());

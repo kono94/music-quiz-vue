@@ -2,8 +2,8 @@
   <li class="list-group-item">
     <div>
       <div>{{player.username}}</div>
-      <button type="submit" @click="$emit('toggleReady')" class="btn "
-              :class="[player.ready ? 'btn-warning' : 'btn-success']">
+      <button type="submit" @click="toggleReady" class="btn "
+              :class="[player.ready ? 'btn-success' : 'btn-warning']">
         {{player.ready ? 'Ready' : 'Not Ready'}}
       </button>
     </div>
@@ -12,10 +12,19 @@
 </template>
 
 <script>
-export default {
+  import gameSocket from '../../gameSocket';
+
+  export default {
   name: 'Player',
   props: {
     player: Object,
+  },
+  methods: {
+    toggleReady() {
+      if(this.player.sessionID === this.$store.getters.sessionID){
+        gameSocket.toggleReady();
+      }
+    },
   },
 };
 </script>

@@ -10,13 +10,15 @@
 </template>
 
 <script>
-import Player from './Player.vue';
+  import Player from './Player.vue';
 
-export default {
+  export default {
   name: 'PlayerList',
   components: { Player },
   props: {
     players: Array,
+  },
+  methods: {
   },
 };
 </script>

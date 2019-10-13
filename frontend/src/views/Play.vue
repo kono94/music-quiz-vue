@@ -39,6 +39,7 @@
   },
   async created() {
     try {
+      await gameSocket.connectToSocket(this.$store);
       if (this.$route.query.roomID) {
         gameSocket.joinRoom(this.$route.query.roomID);
       } else if (this.$store.getters.roomID !== null) {

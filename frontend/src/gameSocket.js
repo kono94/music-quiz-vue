@@ -89,6 +89,10 @@ class GameSocket {
     });
   }
 
+  toggleReady(){
+    this.send(SocketRoutes.TOGGLE_READY, {});
+  }
+
   requestLobbyListUpdate() {
     this.send(SocketRoutes.REQUEST_LOBBY_LIST_UPDATE, {});
   }

@@ -35,9 +35,6 @@
       return this.$store.getters.username;
     },
   },
-  async created(){
-    await gameSocket.connectToSocket(this.$store);
-  },
   methods: {
     handleOk(username) {
       gameSocket.changeUserName(username);
