@@ -1,22 +1,25 @@
 <template>
   <div class="play">
-    <LobbyList v-if="!inRoom && isSocketConnected"/>
-    <Room v-if="inRoom && isSocketConnected"/>
+    <RoomList v-if="!inRoom && isSocketConnected"/>
+    <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected"/>
+    <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected"/>
     <span v-if="!isSocketConnected"> CONNECTING TO SOCKET</span>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import LobbyList from '@/components/LobbyList.vue';
-import Room from '@/components/Room.vue';
+import RoomList from '@/components/RoomList.vue';
+import RoomPreparing from '@/components/RoomPreparing.vue';
+import RoomRunning from '@/components/RoomRunning.vue';
 import gameSocket from '../gameSocket';
 
 export default {
   name: 'play',
   components: {
-    LobbyList,
-    Room,
+    RoomList,
+    RoomPreparing,
+    RoomRunning,
   },
   data() {
     return {
@@ -24,7 +27,10 @@ export default {
   },
   computed: {
     inRoom() {
-      return this.$store.getters.roomID !== null;
+      return this.$store.getters.room !== null;
+    },
+    isRoomRunning() {
+      return this.$store.getters.isRoomRunning;
     },
     isSocketConnected() {
       return this.$store.getters.isSocketConnected;

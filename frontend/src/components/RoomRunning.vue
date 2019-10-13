@@ -1,7 +1,7 @@
 <template>
-  <div>
-    Game
-  </div>
+    <div>
+        In game
+    </div>
 </template>
 <script>
 
