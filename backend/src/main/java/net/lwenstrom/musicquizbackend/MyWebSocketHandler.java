@@ -15,6 +15,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Controller
 public class MyWebSocketHandler extends TextWebSocketHandler {
@@ -49,26 +50,31 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 if (cm.getUsername() != null) {
                     sessionToPlayer.get(session).setUsername(cm.getUsername());
                 }
+                send(session, Event.REFRESH_PLAYER, sessionToPlayer.get(session));
+
+            case REQUEST_ROOM_UPDATE:
+                send(session, Event.REFRESH_ROOM, rooms.get(sessionToPlayer.get(session).getRoomID()));
+                break;
             case REQUEST_LOBBY_LIST_UPDATE:
                 send(session, Event.REFRESH_LOBBY_LIST, rooms.values());
                 break;
             case JOIN_ROOM:
                 JoinRoomPayload jr = parsePayload(messageWrapper, JoinRoomPayload.class);
                 if(rooms.containsKey(jr.getRoomID())){
-                    rooms.get(jr.getRoomID()).getPlayers().add(sessionToPlayer.get(session));
-                    send(session, Event.REFRESH_ROOM, rooms.get(jr.getRoomID()));
+                    rooms.get(jr.getRoomID()).addPlayer(session, sessionToPlayer.get(session));
+                    send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
                 }
         }
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         Player player = sessionToPlayer.get(session);
         if(player.getRoomID() != null && rooms.containsKey(player.getRoomID())){
-            rooms.get(player.getRoomID()).getPlayers().remove(player);
-            player.setRoomID(null);
+            rooms.get(player.getRoomID()).removePlayer(session);
         }
         sessionToPlayer.remove(session);
+        send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
     }
 
     private <T> T parseMessage(TextMessage textMessage, Class<T> classToParse) throws IOException {
@@ -79,10 +85,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         return new ObjectMapper().readValue(messageWrapper.getPayload().toString(), classToParse);
     }
 
-    private <T> void send(WebSocketSession session, Event event, T payload) throws IOException {
+    public static <T> void send(WebSocketSession session, Event event, T payload) throws IOException {
         MessageWrapper lobbyList = new MessageWrapper<HashMap>();
         lobbyList.setEvent(event);
         lobbyList.setPayload(payload);
         session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(lobbyList)));
+    }
+
+    public static <T> void send(Set<WebSocketSession> sessions, Event event, T payload) throws IOException {
+        for(WebSocketSession session: sessions){
+            send(session, event, payload);
+        }
     }
 }

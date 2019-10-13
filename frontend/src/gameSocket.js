@@ -1,5 +1,5 @@
 import * as SocketRoutes from './events';
-import { SET_ROOM, SET_SOCKET_STATE } from './mutation-types';
+import { SET_ROOM, SET_SOCKET_STATE, SET_USER } from './mutation-types';
 
 class GameSocket {
   constructor() {
@@ -44,6 +44,10 @@ class GameSocket {
         switch (msg.event) {
           case SocketRoutes.REFRESH_ROOM:
             this.store.commit(SET_ROOM, msg.payload);
+            break;
+          case SocketRoutes.REFRESH_PLAYER:
+            this.store.commit(SET_USER, msg.payload);
+            break;
         }
       });
     }));
@@ -85,8 +89,12 @@ class GameSocket {
     });
   }
 
-  requestLobbyData() {
+  requestLobbyListUpdate() {
     this.send(SocketRoutes.REQUEST_LOBBY_LIST_UPDATE, {});
+  }
+
+  requestRoomData(){
+    this.send(SocketRoutes.REQUEST_ROOM_UPDATE, {});
   }
 
   changeUserName(username) {

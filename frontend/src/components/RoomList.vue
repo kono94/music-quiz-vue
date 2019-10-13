@@ -4,16 +4,16 @@
     <ul class="list-group">
       <li @click="clickOnRoom(room)" v-for="(room, index) in rooms"
       :key="index" class="list-group-item list-group-item-action cursor-pointer">
-        ID: {{room.id}} in-game: {{room.running}}
+        ID: {{room.id}} {{room.players.length}}/10 running: {{room.running}}
       </li>
     </ul>
   </div>
 </template>
 <script>
-import gameSocket from '../gameSocket';
-import * as Events from '../events';
+  import gameSocket from '../gameSocket';
+  import * as Events from '../events';
 
-export default {
+  export default {
   name: 'lobbyList',
   components: {
 
@@ -26,7 +26,7 @@ export default {
   computed: {
   },
   mounted() {
-    gameSocket.requestLobbyData();
+    gameSocket.requestLobbyListUpdate();
     gameSocket.addEventListener('message', this.messageListener);
   },
   methods: {

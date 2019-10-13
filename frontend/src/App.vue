@@ -6,20 +6,43 @@
           <router-link to="/play">Play</router-link>
           <router-link to="/about">About</router-link>
         </div>
-      <div>
-        Username
+      <div @click="showUserNameModal =  true">
+        {{username}}
       </div>
+          <ChangeUsername v-if="showUserNameModal" @close="showUserNameModal= false" @ok="handleOk"/>
        </nav>
      <router-view class="content"/>
     <Footer/>
   </div>
 </template>
 <script>
-// @ is an alias to /src
+  // @ is an alias to /src
+  import ChangeUsername from './components/modals/ChangeUsername.vue';
+  import gameSocket from './gameSocket';
 
-export default {
+  export default {
   name: 'app',
   components: {
+    ChangeUsername,
+  },
+  data() {
+    return {
+      showUserNameModal: false,
+    };
+  },
+  computed: {
+    username(){
+      return this.$store.getters.username;
+    },
+  },
+  async created(){
+    await gameSocket.connectToSocket(this.$store);
+  },
+  methods: {
+    handleOk(username) {
+      gameSocket.changeUserName(username);
+      this.showUserNameModal = false;
+    },
   },
 };
 </script>

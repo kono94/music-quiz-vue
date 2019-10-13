@@ -8,12 +8,12 @@
   </section>
 </template>
 <script>
-import gameSocket from '../gameSocket';
-import * as Events from '../events';
-import PlayerList from './prepare/PlayerList.vue';
-import Settings from './prepare/RoomSettings.vue';
+  import gameSocket from '../gameSocket';
+  import * as Events from '../events';
+  import PlayerList from './prepare/PlayerList.vue';
+  import Settings from './prepare/RoomSettings.vue';
 
-export default {
+  export default {
   name: 'RoomPreparing',
   components: {
     Settings,
@@ -22,11 +22,16 @@ export default {
   },
   data() {
     return {
-      room: this.$store.getters.room,
+
     };
   },
+  computed:{
+    room(){
+      return this.$store.getters.room;
+    }
+  },
   created() {
-    gameSocket.requestLobbyData();
+    gameSocket.requestRoomData();
     gameSocket.addEventListener('message', this.messageListener);
   },
   methods: {
