@@ -63,6 +63,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+        Player player = sessionToPlayer.get(session);
+        if(player.getRoomID() != null && rooms.containsKey(player.getRoomID())){
+            rooms.get(player.getRoomID()).getPlayers().remove(player);
+            player.setRoomID(null);
+        }
         sessionToPlayer.remove(session);
     }
 

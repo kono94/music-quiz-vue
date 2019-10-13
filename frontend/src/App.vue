@@ -26,22 +26,22 @@ export default {
 
 <style>
   :root {
-    --primary: #dae2e2;
-    --secondary: #8db1b1;
-    --background: #e4f1eb;
-    --dark: #333;
-    --light: #fff;
-    --shadow: 0 1px 5px rgba(104, 104, 104, 0.8);
+    --primaryC: #dae2e2;
+    --secondaryC: #8db1b1;
+    --backgroundC: #e4f1eb;
+    --darkC: #333;
+    --lightC: #fff;
+    --shadowC: 0 1px 5px rgba(104, 104, 104, 0.8);
   }
 
   html {
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    color: var(--dark);
+    color: var(--darkC);
   }
 
   html, body {
-    background: var(--secondary);
+    background: var(--secondaryC);
     margin: 0px;
     line-height: 1.4;
   }
@@ -63,13 +63,14 @@ export default {
     padding-left: 100px;
     display:flex;
     justify-content: space-between;
+    background: var(--secondaryC);
   }
 
   .nav-links{
     display: flex;
   }
   .navbar a {
-    background: var(--primary);
+    background: var(--primaryC);
     display: block;
     text-decoration: none;
     padding: 0.5rem 2rem;
@@ -84,7 +85,7 @@ export default {
   }
 
   .content {
-    background-color: var(--background);
+    background-color: var(--backgroundC);
     padding-bottom: 200px;
     padding-top: 80px;
     display: flex;
@@ -92,5 +93,8 @@ export default {
   }
 
   @media (max-width: 800px) {
+  }
+  .cursor-pointer{
+    cursor: pointer;
   }
 </style>

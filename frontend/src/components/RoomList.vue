@@ -1,9 +1,9 @@
 <template>
   <div>
     Lobbies
-    <ul>
-      <li v-for="(room, index) in rooms"
-      :key="index">
+    <ul class="list-group">
+      <li @click="clickOnRoom(room)" v-for="(room, index) in rooms"
+      :key="index" class="list-group-item list-group-item-action cursor-pointer">
         ID: {{room.id}} in-game: {{room.running}}
       </li>
     </ul>
@@ -37,6 +37,9 @@ export default {
           this.rooms = msg.payload;
           break;
       }
+    },
+    clickOnRoom(room) {
+      this.$emit('joinRoom', room);
     },
   },
   beforeDestroy() {

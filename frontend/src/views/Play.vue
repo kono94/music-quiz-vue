@@ -1,6 +1,7 @@
 <template>
   <div class="play">
-    <RoomList v-if="!inRoom && isSocketConnected"/>
+    <RoomList v-if="!inRoom && isSocketConnected"
+    @joinRoom="joinRoom"/>
     <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected"/>
     <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected"/>
     <span v-if="!isSocketConnected"> CONNECTING TO SOCKET</span>
@@ -49,6 +50,9 @@ export default {
     }
   },
   methods: {
+    joinRoom(room){
+      gameSocket.joinRoom(room.id);
+    },
   },
 
 };
