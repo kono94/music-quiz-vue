@@ -5,6 +5,7 @@
     </div>
     <Settings :room="room"/>
     <PlayerList :players="room.players"/>
+    <button @click="$emit('leaveRoom')">LEAVE ROOM</button>
   </section>
 </template>
 <script>

@@ -45,26 +45,34 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         System.out.println(message.getPayload());
         MessageWrapper messageWrapper = parseMessage(message, MessageWrapper.class);
-        String roomID;
+        Player player = sessionToPlayer.get(session);
+        String roomID = player.getRoomID();
+        System.out.println(roomID);
+        GameRoom playerRoom = null;
+        if(roomID != null){
+            playerRoom = rooms.get(roomID);
+        }
         switch (messageWrapper.getEvent()) {
             case CHANGE_USERNAME:
                 ChangeUsernamePayload cm = parsePayload(messageWrapper, ChangeUsernamePayload.class);
                 if (cm.getUsername() != null) {
-                    sessionToPlayer.get(session).setUsername(cm.getUsername());
+                    player.setUsername(cm.getUsername());
                 }
-                send(session, Event.REFRESH_PLAYER, sessionToPlayer.get(session));
+                send(session, Event.REFRESH_PLAYER, player);
+                if(playerRoom != null){
+                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
+                }
                 break;
             case TOGGLE_READY:
-                roomID = sessionToPlayer.get(session).getRoomID();
-                if(roomID != null){
-                    sessionToPlayer.get(session).setReady(!sessionToPlayer.get(session).isReady());
-                    rooms.get(roomID).refreshRoomForAllPlayers();
+                if(playerRoom != null){
+                   player.setReady(!player.isReady());
+                   send(session, Event.REFRESH_PLAYER, player);
+                   send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
                 }
                 break;
             case REQUEST_ROOM_UPDATE:
-                roomID = sessionToPlayer.get(session).getRoomID();
-                if(roomID != null){
-                    send(session, Event.REFRESH_ROOM, rooms.get(roomID));
+                if(playerRoom != null){
+                    send(session, Event.REFRESH_ROOM, playerRoom);
                 }
                 break;
             case REQUEST_LOBBY_LIST_UPDATE:
@@ -73,9 +81,22 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             case JOIN_ROOM:
                 JoinRoomPayload jr = parsePayload(messageWrapper, JoinRoomPayload.class);
                 if(rooms.containsKey(jr.getRoomID())){
-                    rooms.get(jr.getRoomID()).addPlayer(session, sessionToPlayer.get(session));
+                    playerRoom = rooms.get(jr.getRoomID());
+                    playerRoom.addPlayer(session, player);
+                    send(session, Event.REFRESH_PLAYER, player);
+                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
                     send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
                 }
+                break;
+            case LEAVE_ROOM:
+                if(playerRoom != null){
+                    playerRoom.removePlayer(session);
+                    player.setReady(false);
+                    send(session, Event.REFRESH_PLAYER, player);
+                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
+                    send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
+                }
+                break;
         }
     }
 
@@ -97,14 +118,14 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         return new ObjectMapper().readValue(messageWrapper.getPayload().toString(), classToParse);
     }
 
-    public static <T> void send(WebSocketSession session, Event event, T payload) throws IOException {
+    private <T> void send(WebSocketSession session, Event event, T payload) throws IOException {
         MessageWrapper lobbyList = new MessageWrapper<HashMap>();
         lobbyList.setEvent(event);
         lobbyList.setPayload(payload);
         session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(lobbyList)));
     }
 
-    public static <T> void send(Set<WebSocketSession> sessions, Event event, T payload) throws IOException {
+    private <T> void send(Set<WebSocketSession> sessions, Event event, T payload) throws IOException {
         for(WebSocketSession session: sessions){
             send(session, event, payload);
         }

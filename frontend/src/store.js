@@ -15,6 +15,9 @@ export default new Vuex.Store({
   mutations: {
     [SET_USER](state, payload) {
       this.state.player = payload;
+      if (this.state.player.roomID == null){
+        this.state.room = null;
+      }
     },
     [SET_ROOM](state, payload) {
       this.state.room = payload;
