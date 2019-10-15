@@ -1,7 +1,5 @@
 package net.lwenstrom.musicquizbackend.logic;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import net.lwenstrom.musicquizbackend.model.Player;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -14,8 +12,6 @@ public class GameRoom {
     private String id;
     private boolean isRunning;
     private Map<WebSocketSession, Player> players;
-    @JsonIgnore
-    private boolean hidden;
 
     public GameRoom(String id){
         this.id = id;
@@ -23,15 +19,22 @@ public class GameRoom {
         players = new ConcurrentHashMap<>();
     }
 
-    public void addPlayer(WebSocketSession session, Player player){
-        player.setRoomID(id);
+    public boolean addPlayer(WebSocketSession session, Player player){
+        player.setReady(false);
         players.put(session, player);
+        return true;
     }
-    public void removePlayer(WebSocketSession session){
-        if(session != null && players.get(session) != null){
-            players.get(session).setRoomID(null);
-            players.remove(session);
+
+    public boolean removePlayer(WebSocketSession session){
+        if(session != null){
+          Player player = players.get(session);
+          if(player != null){
+              player.setReady(false);
+              players.remove(session);
+              return true;
+          }
         }
+        return false;
     }
 
     public boolean isRunning() {

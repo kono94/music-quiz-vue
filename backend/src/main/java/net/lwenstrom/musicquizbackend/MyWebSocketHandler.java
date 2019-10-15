@@ -17,13 +17,33 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Controller
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MyWebSocketHandler.class);
+    /*
+     * Maps roomID to room. Rooms themselves have the roomID itself, but this map
+     * allows non-iterative access to the rooms (useful for joining rooms)
+     */
     private Map<String, GameRoom> rooms = new ConcurrentHashMap<>();
+    /*
+     * All connected session will have a "Player"-Object connected to them.
+     * GameRooms will have a "subset" of this Map to save players in room and update
+     * all connected players to this specific room
+     */
     private Map<WebSocketSession, Player> sessionToPlayer = new ConcurrentHashMap<>();
+    /*
+      Quickly access the room the player is currently in instead of iterating through all rooms
+     */
+    private Map<Player, GameRoom> playerToRoom = new ConcurrentHashMap<>();
+    /*
+     * Sessions that are not in a room yet and receive updates about the current states of every room
+     * to sync the lobby list.
+     * No need for players in rooms to receive those messages as well
+     */
+    private Set<WebSocketSession> sessionsRoomless = new CopyOnWriteArraySet<>();
 
     public MyWebSocketHandler() {
         for(int i = 0; i<5; ++i){
@@ -39,6 +59,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         player.setUsername("noName");
         player.setSessionID(session.getId());
         sessionToPlayer.put(session, player);
+        sessionsRoomless.add(session);
     }
 
     @Override
@@ -46,12 +67,8 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         System.out.println(message.getPayload());
         MessageWrapper messageWrapper = parseMessage(message, MessageWrapper.class);
         Player player = sessionToPlayer.get(session);
-        String roomID = player.getRoomID();
-        System.out.println(roomID);
-        GameRoom playerRoom = null;
-        if(roomID != null){
-            playerRoom = rooms.get(roomID);
-        }
+        GameRoom playerRoom = playerToRoom.get(player);
+
         switch (messageWrapper.getEvent()) {
             case CHANGE_USERNAME:
                 ChangeUsernamePayload cm = parsePayload(messageWrapper, ChangeUsernamePayload.class);
@@ -60,14 +77,14 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 }
                 send(session, Event.REFRESH_PLAYER, player);
                 if(playerRoom != null){
-                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
+                    updatePlayersInRoom(playerRoom);
                 }
                 break;
             case TOGGLE_READY:
                 if(playerRoom != null){
                    player.setReady(!player.isReady());
                    send(session, Event.REFRESH_PLAYER, player);
-                   send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
+                   updatePlayersInRoom(playerRoom);
                 }
                 break;
             case REQUEST_ROOM_UPDATE:
@@ -81,20 +98,30 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             case JOIN_ROOM:
                 JoinRoomPayload jr = parsePayload(messageWrapper, JoinRoomPayload.class);
                 if(rooms.containsKey(jr.getRoomID())){
-                    playerRoom = rooms.get(jr.getRoomID());
-                    playerRoom.addPlayer(session, player);
-                    send(session, Event.REFRESH_PLAYER, player);
-                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
-                    send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
+                    GameRoom roomToJoin = rooms.get(jr.getRoomID());
+                    if(playerRoom != null){
+                        if(playerRoom.removePlayer(session)){
+                            updatePlayersInRoom(playerRoom);
+                        }
+                    }
+                    if(roomToJoin.addPlayer(session, player)){
+                        playerToRoom.put(player, roomToJoin);
+                        updatePlayersInRoom(roomToJoin);
+                        sessionsRoomless.remove(session);
+                        send(sessionsRoomless, Event.REFRESH_LOBBY_LIST, rooms.values());
+                    }
                 }
                 break;
             case LEAVE_ROOM:
                 if(playerRoom != null){
-                    playerRoom.removePlayer(session);
-                    player.setReady(false);
-                    send(session, Event.REFRESH_PLAYER, player);
-                    send(playerRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, playerRoom);
-                    send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
+                    if(playerRoom.removePlayer(session)){
+                        playerToRoom.remove(player);
+                        send(session, Event.REFRESH_PLAYER, player);
+                        send(session, Event.REFRESH_ROOM, null);
+                        updatePlayersInRoom(playerRoom);
+                        sessionsRoomless.add(session);
+                        send(sessionsRoomless, Event.REFRESH_LOBBY_LIST, rooms.values());
+                    }
                 }
                 break;
         }
@@ -103,10 +130,14 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         Player player = sessionToPlayer.get(session);
-        if(player.getRoomID() != null && rooms.containsKey(player.getRoomID())){
-            rooms.get(player.getRoomID()).removePlayer(session);
+        GameRoom playerRoom = playerToRoom.get(player);
+        if(playerRoom != null){
+            playerRoom.removePlayer(session);
+            updatePlayersInRoom(playerRoom);
         }
         sessionToPlayer.remove(session);
+        sessionsRoomless.remove(session);
+        playerToRoom.remove(player);
         send(sessionToPlayer.keySet(), Event.REFRESH_LOBBY_LIST, rooms.values());
     }
 
@@ -125,6 +156,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(lobbyList)));
     }
 
+    private void updatePlayersInRoom(GameRoom gameRoom) throws IOException {
+        send(gameRoom.getPlayersMap().keySet(), Event.REFRESH_ROOM, gameRoom);
+    }
     private <T> void send(Set<WebSocketSession> sessions, Event event, T payload) throws IOException {
         for(WebSocketSession session: sessions){
             send(session, event, payload);
