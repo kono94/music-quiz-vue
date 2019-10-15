@@ -13,3 +13,5 @@ export const REFRESH_LOBBY_ROOM_INFO = 'REFRESH_LOBBY_ROOM_INFO';
 export const REFRESH_ROOM = 'REFRESH_ROOM';
 export const REFRESH_PLAYER = 'REFRESH_PLAYER';
 export const TOGGLE_READY = 'TOGGLE_READY';
+export const START_GAME = 'START_GAME';
+export const STOP_GAME = 'STOP_GAME';

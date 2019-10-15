@@ -2,8 +2,8 @@
   <div class="play">
     <RoomList v-if="!inRoom && isSocketConnected"
     @joinRoom="joinRoom"/>
-    <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected" @leaveRoom="leaveRoom"/>
-    <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected" @leaveRoom="leaveRoom"/>
+    <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected" @leaveRoom="leaveRoom" @startGame="startGame"/>
+    <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected" @leaveRoom="leaveRoom" @stopGame="stopGame"/>
     <span v-if="!isSocketConnected"> CONNECTING TO SOCKET</span>
   </div>
 </template>
@@ -55,6 +55,12 @@
     },
     leaveRoom(){
       gameSocket.leaveRoom();
+    },
+    startGame(){
+      gameSocket.startGame();
+    },
+    stopGame(){
+      gameSocket.stopGame();
     }
   },
 

@@ -6,15 +6,16 @@
     <Settings :room="room"/>
     <PlayerList :players="room.players"/>
     <button @click="$emit('leaveRoom')">LEAVE ROOM</button>
+    <button @click="$emit('startGame')" v-if="ableToStart">START GAME</button>
   </section>
 </template>
 <script>
-  import gameSocket from '../gameSocket';
-  import * as Events from '../events';
-  import PlayerList from './prepare/PlayerList.vue';
-  import Settings from './prepare/RoomSettings.vue';
+import gameSocket from '../gameSocket';
+import * as Events from '../events';
+import PlayerList from './prepare/PlayerList.vue';
+import Settings from './prepare/RoomSettings.vue';
 
-  export default {
+export default {
   name: 'RoomPreparing',
   components: {
     Settings,
@@ -26,10 +27,19 @@
 
     };
   },
-  computed:{
-    room(){
+  computed: {
+    room() {
       return this.$store.getters.room;
-    }
+    },
+    ableToStart() {
+      let allReady = true;
+      this.$store.getters.room.players.forEach((player) => {
+        if (!player.ready) {
+          allReady = false;
+        }
+      });
+      return allReady && this.$store.getters.room.adminSessionID === this.$store.getters.sessionID;
+    },
   },
   created() {
     gameSocket.requestRoomData();
@@ -39,9 +49,6 @@
     messageListener(event) {
       const msg = JSON.parse(event.data);
       switch (msg.event) {
-        case Events.REFRESH_LOBBY_LIST:
-          this.rooms = msg.payload;
-          break;
       }
     },
   },

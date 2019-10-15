@@ -93,6 +93,14 @@ class GameSocket {
     this.send(SocketRoutes.TOGGLE_READY, {});
   }
 
+  startGame(){
+    this.send(SocketRoutes.START_GAME, {});
+  }
+
+  stopGame(){
+    this.send(SocketRoutes.STOP_GAME, {});
+  }
+
   requestLobbyListUpdate() {
     this.send(SocketRoutes.REQUEST_LOBBY_LIST_UPDATE, {});
   }

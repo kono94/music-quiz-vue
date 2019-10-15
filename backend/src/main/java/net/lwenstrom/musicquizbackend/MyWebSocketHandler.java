@@ -49,6 +49,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         for(int i = 0; i<5; ++i){
             GameRoom room = new GameRoom(Integer.toString(i));
             rooms.put(room.getId(), room);
+            new Thread(room).start();
         }
     }
 
@@ -85,6 +86,18 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                    player.setReady(!player.isReady());
                    send(session, Event.REFRESH_PLAYER, player);
                    updatePlayersInRoom(playerRoom);
+                }
+                break;
+            case START_GAME:
+                if(playerRoom != null){
+                    playerRoom.startGame(player);
+                    updatePlayersInRoom(playerRoom);
+                }
+                break;
+            case STOP_GAME:
+                if(playerRoom != null){
+                    playerRoom.stopGame(player);
+                    updatePlayersInRoom(playerRoom);
                 }
                 break;
             case REQUEST_ROOM_UPDATE:
