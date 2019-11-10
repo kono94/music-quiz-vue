@@ -8,10 +8,9 @@
   </section>
 </template>
 <script>
-import gameSocket from '../gameSocket';
-import * as Events from '../events';
+  import gameSocket from '../gameSocket';
 
-export default {
+  export default {
   name: 'RoomRunning',
   components: {
   },
@@ -25,7 +24,7 @@ export default {
       return this.$store.getters.room;
     },
     ableToStop() {
-      return this.$store.getters.room.adminSessionID === this.$store.getters.sessionID;
+      return this.$store.getters.isRoomAdmin;
     },
   },
   created() {

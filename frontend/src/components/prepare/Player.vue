@@ -1,8 +1,8 @@
 <template>
   <li class="list-group-item">
     <div>
-      <div>{{player.username}}</div>
-      <button type="submit" @click="toggleReady" class="btn "
+      <div> <span v-if="isAdmin()">(A) </span> {{player.username}} <span v-if="isLocalUser()">(YOU)</span> </div>
+      <button type="submit" @click="toggleReady()" class="btn "
               :class="[player.ready ? 'btn-success' : 'btn-warning']">
         {{player.ready ? 'Ready' : 'Not Ready'}}
       </button>
@@ -19,9 +19,16 @@
   props: {
     player: Object,
   },
+
   methods: {
+    isAdmin(){
+      return this.player.sessionID === this.$store.getters.roomAdminID;
+    },
+    isLocalUser() {
+      return this.player.sessionID === this.$store.getters.sessionID;
+    },
     toggleReady() {
-      if(this.player.sessionID === this.$store.getters.sessionID){
+      if (this.isLocalUser()) {
         gameSocket.toggleReady();
       }
     },

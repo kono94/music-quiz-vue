@@ -31,6 +31,8 @@ export default new Vuex.Store({
     sessionID: state => state.player.sessionID,
     username: state => state.player.username,
     isSocketConnected: state => state.socketConnected,
+    roomAdminID: state => state.room.adminSessionID,
     isRoomRunning: state => (state.room ? state.room.running : false),
+    isRoomAdmin: state => state.room.adminSessionID === state.player.sessionID,
   },
 });
