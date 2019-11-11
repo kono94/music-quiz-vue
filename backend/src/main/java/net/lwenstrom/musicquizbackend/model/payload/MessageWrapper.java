@@ -1,6 +1,7 @@
-package net.lwenstrom.musicquizbackend.model;
+package net.lwenstrom.musicquizbackend.model.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import net.lwenstrom.musicquizbackend.model.Event;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageWrapper<T> {

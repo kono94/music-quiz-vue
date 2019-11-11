@@ -4,6 +4,10 @@ package net.lwenstrom.musicquizbackend;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.lwenstrom.musicquizbackend.logic.GameRoom;
 import net.lwenstrom.musicquizbackend.model.*;
+import net.lwenstrom.musicquizbackend.model.payload.ChangeUsernamePayload;
+import net.lwenstrom.musicquizbackend.model.payload.JoinRoomPayload;
+import net.lwenstrom.musicquizbackend.model.payload.MessageWrapper;
+import net.lwenstrom.musicquizbackend.repo.SongRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -21,8 +25,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Controller
 public class MyWebSocketHandler extends TextWebSocketHandler {
-
     private static final Logger logger = LoggerFactory.getLogger(MyWebSocketHandler.class);
+    private final SongRepository songRepository;
     /*
      * Maps roomID to room. Rooms themselves have the roomID itself, but this map
      * allows non-iterative access to the rooms (useful for joining rooms)
@@ -45,12 +49,15 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
      */
     private Set<WebSocketSession> sessionsRoomless = new CopyOnWriteArraySet<>();
 
-    public MyWebSocketHandler() {
+
+
+    public MyWebSocketHandler(SongRepository songRepository) {
         for(int i = 0; i<5; ++i){
             GameRoom room = new GameRoom(Integer.toString(i));
             rooms.put(room.getId(), room);
             new Thread(room).start();
         }
+        this.songRepository = songRepository;
     }
 
     @Override

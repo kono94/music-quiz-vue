@@ -1,4 +1,4 @@
-package net.lwenstrom.musicquizbackend.model;
+package net.lwenstrom.musicquizbackend.model.payload;
 
 public class JoinRoomPayload {
     private String roomID;

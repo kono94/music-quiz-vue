@@ -14,6 +14,7 @@ public class GameRoom implements Runnable{
     private boolean isRunning;
     private Map<WebSocketSession, Player> players;
     private String adminSessionID;
+    private final int tickRate = 10;
 
     public GameRoom(String id){
         this.id = id;
@@ -48,6 +49,11 @@ public class GameRoom implements Runnable{
         while (true){
             checkRunning();
             System.out.println("main loop");
+            try {
+                Thread.sleep((60*1000)/tickRate);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
