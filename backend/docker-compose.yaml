@@ -9,7 +9,7 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: user
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: default_schema
+      MYSQL_DATABASE: music_quiz
     volumes:
       - data-volume:/var/lib/mysql
   phpadmin:

@@ -1,4 +1,4 @@
 access phpmyadmin locally via:
 ```
-http://192.168.99.100:8004/
+http://127.0.0.1:8004/
 ```

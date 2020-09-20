@@ -10,10 +10,10 @@
   </div>
 </template>
 <script>
-  import gameSocket from '../gameSocket';
-  import * as Events from '../events';
+import gameSocket from '../gameSocket';
+import * as Events from '../events';
 
-  export default {
+export default {
   name: 'lobbyList',
   components: {
 

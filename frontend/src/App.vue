@@ -9,18 +9,20 @@
       <div @click="showUserNameModal =  true">
         {{username}}
       </div>
-          <ChangeUsername v-if="showUserNameModal" @close="showUserNameModal= false" @ok="handleOk"/>
+          <ChangeUsername v-if="showUserNameModal"
+                          @close="showUserNameModal= false"
+                          @ok="handleOk"/>
        </nav>
      <router-view class="content"/>
     <Footer/>
   </div>
 </template>
 <script>
-  // @ is an alias to /src
-  import ChangeUsername from './components/modals/ChangeUsername.vue';
-  import gameSocket from './gameSocket';
+// @ is an alias to /src
+import ChangeUsername from './components/modals/ChangeUsername.vue';
+import gameSocket from './gameSocket';
 
-  export default {
+export default {
   name: 'app',
   components: {
     ChangeUsername,
@@ -31,7 +33,7 @@
     };
   },
   computed: {
-    username(){
+    username() {
       return this.$store.getters.username;
     },
   },

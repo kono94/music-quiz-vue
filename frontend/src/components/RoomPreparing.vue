@@ -10,11 +10,11 @@
   </section>
 </template>
 <script>
-  import gameSocket from '../gameSocket';
-  import PlayerList from './prepare/PlayerList.vue';
-  import Settings from './prepare/RoomSettings.vue';
+import gameSocket from '../gameSocket';
+import PlayerList from './prepare/PlayerList.vue';
+import Settings from './prepare/RoomSettings.vue';
 
-  export default {
+export default {
   name: 'RoomPreparing',
   components: {
     Settings,
@@ -27,7 +27,7 @@
     };
   },
   computed: {
-    isRoomAdmin(){
+    isRoomAdmin() {
       return this.$store.getters.isRoomAdmin;
     },
     room() {

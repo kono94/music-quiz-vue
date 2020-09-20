@@ -52,12 +52,13 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
 
     public MyWebSocketHandler(SongRepository songRepository) {
+        this.songRepository = songRepository;
+
         for(int i = 0; i<5; ++i){
             GameRoom room = new GameRoom(Integer.toString(i));
             rooms.put(room.getId(), room);
             new Thread(room).start();
         }
-        this.songRepository = songRepository;
     }
 
     @Override

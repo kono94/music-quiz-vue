@@ -8,9 +8,9 @@
   </section>
 </template>
 <script>
-  import gameSocket from '../gameSocket';
+import gameSocket from '../gameSocket';
 
-  export default {
+export default {
   name: 'RoomRunning',
   components: {
   },

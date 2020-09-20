@@ -38,6 +38,10 @@ public class GameRoom implements Runnable{
           if(player != null){
               player.setReady(false);
               players.remove(session);
+              // if no player is left in the room, stop the game
+              if(players.size() == 0) {
+                  stopGame();
+              }
               return true;
           }
         }

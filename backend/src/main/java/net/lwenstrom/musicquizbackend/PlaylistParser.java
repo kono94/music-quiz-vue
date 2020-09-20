@@ -28,6 +28,6 @@ public class PlaylistParser {
         Playlist playlist = restTemplate.getForObject(url, Playlist.class);
         System.out.println(playlist.getDescription());
         System.out.println(playlist.getSongs().get(0).getAlbum().getTitle());
-        playlistRepository.save(playlist);
+        //playlistRepository.save(playlist);
     }
 }

@@ -1,21 +1,25 @@
 <template>
   <div class="play">
     <RoomList v-if="!inRoom && isSocketConnected"
-    @joinRoom="joinRoom"/>
-    <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected" @leaveRoom="leaveRoom" @startGame="startGame"/>
-    <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected" @leaveRoom="leaveRoom" @stopGame="stopGame"/>
+                  @joinRoom="joinRoom"/>
+    <RoomPreparing v-if="inRoom && !isRoomRunning && isSocketConnected"
+                   @leaveRoom="leaveRoom"
+                   @startGame="startGame"/>
+    <RoomRunning v-if="inRoom && isRoomRunning  && isSocketConnected"
+                 @leaveRoom="leaveRoom"
+                 @stopGame="stopGame"/>
     <span v-if="!isSocketConnected"> CONNECTING TO SOCKET</span>
   </div>
 </template>
 
 <script>
-  // @ is an alias to /src
-  import RoomList from '@/components/RoomList.vue';
-  import RoomPreparing from '@/components/RoomPreparing.vue';
-  import RoomRunning from '@/components/RoomRunning.vue';
-  import gameSocket from '../gameSocket';
+// @ is an alias to /src
+import RoomList from '@/components/RoomList.vue';
+import RoomPreparing from '@/components/RoomPreparing.vue';
+import RoomRunning from '@/components/RoomRunning.vue';
+import gameSocket from '../gameSocket';
 
-  export default {
+export default {
   name: 'play',
   components: {
     RoomList,
@@ -50,18 +54,18 @@
     }
   },
   methods: {
-    joinRoom(room){
+    joinRoom(room) {
       gameSocket.joinRoom(room.id);
     },
-    leaveRoom(){
+    leaveRoom() {
       gameSocket.leaveRoom();
     },
-    startGame(){
+    startGame() {
       gameSocket.startGame();
     },
-    stopGame(){
+    stopGame() {
       gameSocket.stopGame();
-    }
+    },
   },
 
 };

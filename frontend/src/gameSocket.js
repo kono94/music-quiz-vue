@@ -105,7 +105,7 @@ class GameSocket {
     this.send(SocketRoutes.REQUEST_LOBBY_LIST_UPDATE, {});
   }
 
-  requestRoomData(){
+  requestRoomData() {
     this.send(SocketRoutes.REQUEST_ROOM_UPDATE, {});
   }
 

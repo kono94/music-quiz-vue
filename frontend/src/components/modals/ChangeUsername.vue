@@ -8,9 +8,9 @@
   </Modal>
 </template>
 <script>
-  import Modal from './Modal.vue';
+import Modal from './Modal.vue';
 
-  export default {
+export default {
   name: 'ChangeUsername',
   components: {
     Modal,
